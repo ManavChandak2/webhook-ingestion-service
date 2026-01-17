@@ -1,10 +1,27 @@
 from fastapi import FastAPI
+from app.db.models import init_db
+from app.core.config import settings
 
-app = FastAPI(title="WebHook Ingestion Service")
+app = FastAPI(title="Webhook Ingestion Service")
+
+
+@app.on_event("startup")
+def startup_event():
+    if not settings.WEBHOOK_SECRET:
+        raise RuntimeError("WEBHOOK_SECRET is not set")
+
+    init_db()
+
+
 @app.get("/health/live")
 def live():
     return {"status": "alive"}
 
+
 @app.get("/health/ready")
 def ready():
-    return {"status": "ready"}
+    try:
+        init_db()
+        return {"status": "ready"}
+    except Exception:
+        return {"status": "not ready"}
