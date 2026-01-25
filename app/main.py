@@ -4,6 +4,8 @@ from app.api.messages import router as messages_router
 from app.db.models import init_db
 from app.core.config import settings
 from app.api.stats import router as stats_router
+from app.middleware import logging_middleware
+from app.metrics import router as metrics_router
 
 app = FastAPI(title="Webhook Ingestion Service")
 
@@ -11,7 +13,8 @@ app = FastAPI(title="Webhook Ingestion Service")
 app.include_router(webhook_router)
 app.include_router(messages_router)
 app.include_router(stats_router)
-
+app.middleware("http")(logging_middleware)
+app.include_router(metrics_router)
 
 @app.on_event("startup")
 def startup_event():
